@@ -1,0 +1,54 @@
+variable_name,definition
+order_id,The unique order code
+order_item_cardprod_id,The corresponding product code generated through the RFID reader
+order_customer_id,The corresponding customer ID associated with the order
+order_department_id,The corresponding department ID associated with the order
+market_cat,"Geographic zone where the ordrer will be delivered (Africa, Europe, LATAM, Pacific Asia, USCA)"
+order_city_addr,The destination city for the order
+order_country_addr,The destination country for the order
+order_region_addr,The destination region for the order
+order_state_addr,The destination state for the order
+order_status_cat,"The corresponding order status (Complete, Pending, Closed, Pending Payment, Canceled, Processing, Suspected Fraud, On Hold, Payment Review)"
+order_zipcode_addr,The destination zipcode for the order
+order_dt,The date on which the order was placed
+order_item_discount_amt,The corresponding order item’s discount value
+order_item_discount_pct,The corresponding order item’s discount as a percentage of the item total
+order_item_id,The unique order item code
+n_order_items,The quantity of that item in the corresponding order
+sales_amt,The order value in gross sales (prior to any discount)
+order_item_total_amt,The total dollar value of the order (following the application of any discount)
+order_profit_amt,The total profit from the corresponding order (SupplyCo’s final cut after backing out discounts and costs)
+payment_type_cat,"The type of the transaction (Debit, Transfer, Payment, Cash)"
+n_days_for_shipping__real,Actual shipping days for the corresponding order
+n_days_for_shipment__scheduled,Scheduled number of days for delivery of the corresponding order
+delivery_status_cat,"Delivery status for the corresponding order (Advance Shipping, Late Delivery, Shipping Canceled, Shipping on Time)"
+is_late_delivery_risk,Categorical variable that indicates if sending of the order is late (0 indicates shipment was sent on time; 1 indicates shipment was sent late)
+product_card_id,Unique product code (matches with Order Item Cardprod Id)
+product_category_id,Unique category code of the corresponding product
+product_description_txt,A brief description of the product
+product_image_url_attr,Link to a picture of the corresponding product
+product_name_attr,The name of the corresponding product
+product_price_amt,The price of the corresponding product
+is_product_available,BigSupplyCo’s stock status for the corresponding product (0 if the product is available; 1 if the product is not available)
+customer_id,Unique customer code (matches with Order Customer Id)
+customer_city_addr,The city where the customer made the corresponding purchase
+customer_country_addr,The country where the customer made the corresponding purchase
+customer_email_attr,Customer’s email
+customer_first_name_attr,Customer’s first name
+customer_last_name_attr,Customer’s last name
+customer_password_strid,Masked customer password
+customer_segment_cat,"Type of customer on the corresponding purchase (Consumer, Corporate, Home Office)"
+customer_state_addr,State where the customer made the corresponding purchase
+customer_street_addr,Street address where the customer made the corresponding purchase
+customer_zipcode_addr,Zipcode where the customer made the corresponding purchase
+department_id,Unique department code (matches with Order Department Id)
+department_name_attr,The name of the corresponding department store
+latitude_val,Latitude of the corresponding department store
+longitude_val,Longitude of the corresponding department store
+category_id,Unique category code (matches with Product Category Id)
+category_name_attr,The name of the corresponding product category
+total_sales_amt_per_category_val,The sum of sales_amt based on product_category_id
+avg_order_amt_per_segment_val,The average order_item_total_amt based on customer_segment_cat
+n_orders_per_region_val,The count of orders based on order_region_addr
+product_price_variance_val,The variance of product_price_amt based on product_id
+product_price_stddev_val,The standard deviation of product_price_amt based on product_id

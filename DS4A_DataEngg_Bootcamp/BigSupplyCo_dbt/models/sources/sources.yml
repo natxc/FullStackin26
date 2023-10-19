@@ -1,0 +1,43 @@
+version: 2
+
+sources:
+  - name: public
+    description: ""
+    database: airflow 
+    schema: public
+    tables:
+      - name: products_s3_files_to_postgres
+        description: ""
+        # columns:
+        #   - name: 
+        #     tests:
+        #     - unique
+        #     - not_null
+      - name: orders_s3_files_to_postgres
+        description: ""
+        # columns:
+        #   - name: 
+        #     tests:
+        #     - unique
+        #     - not_null
+      - name: departments_s3_files_to_postgres
+        description: ""
+        # columns:
+        #   - name: 
+        #     tests:
+        #     - unique
+        #     - not_null
+      - name: customers_s3_files_to_postgres
+        description: ""
+        # columns:
+        #   - name: 
+        #     tests:
+        #     - unique
+        #     - not_null
+      - name: categories_s3_files_to_postgres
+        description: ""
+        # columns:
+        #   - name: 
+        #     tests:
+        #     - unique
+        #     - not_null

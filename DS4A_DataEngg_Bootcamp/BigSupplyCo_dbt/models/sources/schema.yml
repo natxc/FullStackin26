@@ -1,0 +1,12 @@
+
+version: 2
+
+models:
+  - name: stg_bigsupplyco__products
+    description: "Includes information about individual products, such as product ID, category ID, description, and price."
+    columns:
+      - name: product_id
+        description: "The primary key for this table"
+        # tests:
+        #   - unique
+        #   - not_null
