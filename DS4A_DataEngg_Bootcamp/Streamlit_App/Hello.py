@@ -42,9 +42,9 @@ def explanation():
 
     High level breakdown of my process:
 
-    Data Engineering:
+    ## Data Engineering:
 
-    Step 1:
+    ### Step 1:
     Creating the environment (I prefer conda) and installing the packages:
     - Kubernetes
     - PostgreSQL
@@ -54,74 +54,78 @@ def explanation():
     - Airbyte
     Specifics can be found in requirements.txt
 
-    Step 2:
+    ### Step 2:
     Initiliaze my postgres db. Create myself as a non-superuser and then create a new inner database. Also added postgres files to gitignore. Initialized the db and created a schema. Learned a lot of psql commands too!
     """)
 
     st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/psql.png?raw=true')
 
     st.markdown("""
-    Step 3:
+    
+    ### Step 3:
     Getting airflow setup with postgres. Running the webserver and enabling a DAG.
 
-    Step 4:
+    ### Step 4:
     Initilizaing a dbt project and connecting to postgres.
 
-    Step 5:
+    ### Step 5:
     Create an AWS account and create an S3 bucket.
     
-    Step 6:
+    ### Step 6:
     Add CSVs to S3 buckets via Airflow.
                 """)
                 
     st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/airflow.png?raw=true')
 
     st.markdown(""" 
-    Step 7:
+    
+    ### Step 7:
     Load data from S3 to PostgreSQL via Airbyte. I learned a lot about iam, policies and permissions, and even AWS CLI along the way. Airbyte was nice as it already had out of the box connections for S3 and Postgres.
     """)
 
     st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/airbyte.png?raw=true')
 
     st.markdown("""          
-    Step 8:
+    
+    ### Step 8:
     Add the dbt_utils packages and in dbt start to create the staging, dim, and facts models. Then create the final datamodel. Some cleaning needed to be done like casting data types appropriately, renaming columns to stick to data contract names, logic to change certain fields like zipcode or creating booleans, and commenting out empty or non valuable columns. I also made a star schema diagram to help plan this all out.
     """)
     
     st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/dbt.png?raw=true')
 
     st.markdown("""       
-    Step 9:
+    
+    ### Step 9:
     Add in tests and source freshness, even though I will never add more data to this warehouse ever :)
 
-    Step 10:
+    ### Step 10:
     Move Postgres models to Snowflake so I don't have to worry about any servers.
 
-    UI:
+    ## UI:
 
-    Step 1:
+    ### Step 1:
     Installing the packages:
     - Streamlit
     - OpenAI
     - Snowpark
     - Plotly
 
-    Step 2:
+    ### Step 2:
     Create Streamlit python file and secrets file then add and test the Postgres connection.
 
-    Step 3:
+    ### Step 3:
     Add chatbot! Which entailed a main file and a promps.py file for prompt engineering.
 
-    Step 4:
+    ### Step 4:
     In dbt, I created a new metadata table with descriptions and datatypes. Used a dbt seed this time ;) And did a `--full-refresh` seed run whenever I would update the column names as I went.
 
-    Step 5:
+    ### Step 5:
     Updated the prompts file as any hallucinations from the chatbot occured!
 
-    Step 6:
+    ### Step 6:
     Add more fun visualizations including charts based on the chatbot's output. And some text boxes for executing database queries. But I had to consider security for DML operations and be careful with possible SQL injections. I had to restrict DML operations such as DELETE, UPDATE, and so on.
 
-    Step 5:
+    ### Step 7:
     Deploy!
     """)
 
