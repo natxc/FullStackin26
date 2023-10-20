@@ -1,10 +1,10 @@
-{{ config(materialized="view") }}
+{{ config(materialized="table") }}
 
 with
 
 source  as (
 
-    select * from {{ source('public','products_s3_files_to_postgres') }} limit 10
+    select * from {{ source('public','products_s3_files_to_postgres') }}
 
 ),
 
