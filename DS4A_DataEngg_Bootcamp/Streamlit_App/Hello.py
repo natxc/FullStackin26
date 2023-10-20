@@ -81,7 +81,7 @@ def explanation():
     Load data from S3 to PostgreSQL via Airbyte. I learned a lot about iam, policies and permissions, and even AWS CLI along the way. Airbyte was nice as it already had out of the box connections for S3 and Postgres.
     """)
 
-    st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/airbyte.png')
+    st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/airbyte.png?raw=true')
 
     st.markdown("""          
     Step 8:
