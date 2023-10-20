@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import plotly.graph_objects as go
 
 st.set_page_config(
     page_title="Big Supply Co",
@@ -172,10 +173,32 @@ def chatbot():
                 sql = sql_match.group(1)
                 # conn = st.experimental_connection("postgresql", type="sql")
                 conn = st.experimental_connection("snowpark")
-                message["results"] = conn.query(sql)
+                sql = sql.replace('<tableName>', 'AIRBYTE_DATABASE.AIRBYTE_SCHEMA.ORDERS')
+                if not re.search(r'\b(update|delete)\b', sql, re.IGNORECASE):
+                    # conn = st.experimental_connection("postgresql", type="sql")
+                    conn = st.experimental_connection("snowpark")
+                    message["results"] = conn.query(sql)
+                    # Adding bar charts if there is at least 1 dimension and 1 measure
+                    if len(message["results"].columns) == 2:
+                        if len(message["results"]) > 1:
+                            fig = go.Figure(data=go.Bar(x=message["results"].iloc[:,0], y=message["results"].iloc[:,1]))
+                            fig.update_layout(xaxis={'categoryorder': 'total descending'})
+                            st.plotly_chart(fig)
+                    elif len(message["results"].columns) <= 1:
+                        pass
+                    else:
+                        y = message["results"].select_dtypes(include=['int','int8', 'int64', 'float64']).columns.tolist()
+                        if len(y) > 0:
+                            fig = go.Figure(data=go.Bar(x=message["results"].iloc[:,0], y=message["results"][y[0]]))
+                            fig.update_layout(xaxis={'categoryorder': 'total descending'})
+                            st.plotly_chart(fig)
+                        else:
+                            pass
+                else:
+                    # Handle the case where the query contains DML
+                    message["results"] = "Query contains DML operations and is not allowed."
                 st.dataframe(message["results"])
             st.session_state.messages.append(message)
-
 
 page_names_to_funcs = {
     "—": intro,
