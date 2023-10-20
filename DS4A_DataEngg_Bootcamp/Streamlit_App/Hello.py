@@ -38,7 +38,7 @@ def explanation():
 
     Ultimately, my recommendation would be to use dbt and a Snowflake data warehouse. Snowflake has acquired Streamlit so it has become a very strong pair and OpenAI has only solidified both of those tools. If I was feeling extra fun, I would set up Fivetran or Rivery to extract my Postgres data models to Snowflake and then use Snowpark for this. How many other tools can I add to make the most complicated ELT/ETL journey possible???
 
-    You know what, I actually do like that idea better. So I did just that! Well, no new tools, just using Airbyte to load my Postgres models to Snowflake.
+    You know what, I actually do like that idea better. So I did just that! Well, no new tools, just using Airbyte to load my Postgres models to Snowflake. Should I go back and add Dagster to the mix for fun though..
 
     High level breakdown of my process:
 
@@ -55,7 +55,7 @@ def explanation():
     Specifics can be found in requirements.txt
 
     ### Step 2:
-    Initiliaze my postgres db. Create myself as a non-superuser and then create a new inner database. Also added postgres files to gitignore. Initialized the db and created a schema. Learned a lot of psql commands too!
+    Initialize my postgres db. Create myself as a non-superuser and then create a new inner database. Also added postgres files to gitignore. Initialized the db and created a schema. Learned a lot of psql commands too!
     """)
 
     st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/psql.png?raw=true')
@@ -66,7 +66,7 @@ def explanation():
     Getting airflow setup with postgres. Running the webserver and enabling a DAG.
 
     ### Step 4:
-    Initilizaing a dbt project and connecting to postgres.
+    Initializing a dbt project and connecting to postgres.
 
     ### Step 5:
     Create an AWS account and create an S3 bucket.
@@ -88,7 +88,7 @@ def explanation():
     st.markdown("""          
     
     ### Step 8:
-    Add the dbt_utils packages and in dbt start to create the staging, dim, and facts models. Then create the final datamodel. Some cleaning needed to be done like casting data types appropriately, renaming columns to stick to data contract names, logic to change certain fields like zipcode or creating booleans, and commenting out empty or non valuable columns. I also made a star schema diagram to help plan this all out.
+    Add the dbt_utils packages and in dbt start to create the staging, dim, and facts models. Then create the final datamodel. Some cleaning needed to be done like casting data types appropriately, renaming columns to stick to data contract names, logic to change certain fields like zipcode or creating booleans, and commenting out empty or non valuable columns. I also made a star schema diagram to help plan this all out and to help avoid many to many relationships on the joins.
     """)
     
     st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/dbt.png?raw=true')
@@ -126,7 +126,7 @@ def explanation():
     Add more fun visualizations including charts based on the chatbot's output. And some text boxes for executing database queries. But I had to consider security for DML operations and be careful with possible SQL injections. I had to restrict DML operations such as DELETE, UPDATE, and so on.
 
     ### Step 7:
-    Deploy!
+    Deploy and enjoy!
     """)
 
 def visualizations():
