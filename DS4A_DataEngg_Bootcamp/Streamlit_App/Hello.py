@@ -85,7 +85,11 @@ def explanation():
     st.markdown("""          
     Step 8:
     Add the dbt_utils packages and in dbt start to create the staging, dim, and facts models. Then create the final datamodel. Some cleaning needed to be done like casting data types appropriately, renaming columns to stick to data contract names, logic to change certain fields like zipcode or creating booleans, and commenting out empty or non valuable columns. I also made a star schema diagram to help plan this all out.
+    """)
+    
+    st.image('./images/psql.png')
 
+    st.markdown("""       
     Step 9:
     Add in tests and source freshness, even though I will never add more data to this warehouse ever :)
 
@@ -166,7 +170,8 @@ def chatbot():
             sql_match = re.search(r"```sql\n(.*)\n```", response, re.DOTALL)
             if sql_match:
                 sql = sql_match.group(1)
-                conn = st.experimental_connection("postgresql", type="sql")
+                # conn = st.experimental_connection("postgresql", type="sql")
+                conn = st.experimental_connection("snowpark")
                 message["results"] = conn.query(sql)
                 st.dataframe(message["results"])
             st.session_state.messages.append(message)
