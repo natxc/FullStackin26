@@ -58,7 +58,7 @@ def explanation():
     Initiliaze my postgres db. Create myself as a non-superuser and then create a new inner database. Also added postgres files to gitignore. Initialized the db and created a schema. Learned a lot of psql commands too!
     """)
 
-    st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/psql.png')
+    st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/psql.png?raw=true')
 
     st.markdown("""
     Step 3:
@@ -74,7 +74,7 @@ def explanation():
     Add CSVs to S3 buckets via Airflow.
                 """)
                 
-    st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/airflow.png')
+    st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/airflow.png?raw=true')
 
     st.markdown(""" 
     Step 7:
@@ -88,7 +88,7 @@ def explanation():
     Add the dbt_utils packages and in dbt start to create the staging, dim, and facts models. Then create the final datamodel. Some cleaning needed to be done like casting data types appropriately, renaming columns to stick to data contract names, logic to change certain fields like zipcode or creating booleans, and commenting out empty or non valuable columns. I also made a star schema diagram to help plan this all out.
     """)
     
-    st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/dbt.png')
+    st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/dbt.png?raw=true')
 
     st.markdown("""       
     Step 9:
@@ -174,7 +174,7 @@ def chatbot():
                 # conn = st.experimental_connection("postgresql", type="sql")
                 conn = st.experimental_connection("snowpark")
                 sql = sql.replace('<tableName>', 'AIRBYTE_DATABASE.AIRBYTE_SCHEMA.ORDERS')
-                if not re.search(r'\b(update|delete)\b', sql, re.IGNORECASE):
+                if not re.search(r'\b(update|delete|insert)\b', sql, re.IGNORECASE):
                     # conn = st.experimental_connection("postgresql", type="sql")
                     conn = st.experimental_connection("snowpark")
                     message["results"] = conn.query(sql)
