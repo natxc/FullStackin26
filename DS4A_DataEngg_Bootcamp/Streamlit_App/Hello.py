@@ -58,7 +58,7 @@ def explanation():
     Initiliaze my postgres db. Create myself as a non-superuser and then create a new inner database. Also added postgres files to gitignore. Initialized the db and created a schema. Learned a lot of psql commands too!
     """)
 
-    st.image('/images/psql.png')
+    st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/psql.png')
 
     st.markdown("""
     Step 3:
@@ -74,21 +74,21 @@ def explanation():
     Add CSVs to S3 buckets via Airflow.
                 """)
                 
-    st.image('/images/airflow.png')
+    st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/airflow.png')
 
     st.markdown(""" 
     Step 7:
     Load data from S3 to PostgreSQL via Airbyte. I learned a lot about iam, policies and permissions, and even AWS CLI along the way. Airbyte was nice as it already had out of the box connections for S3 and Postgres.
     """)
 
-    st.image('/images/airbyte.png')
+    st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/airbyte.png')
 
     st.markdown("""          
     Step 8:
     Add the dbt_utils packages and in dbt start to create the staging, dim, and facts models. Then create the final datamodel. Some cleaning needed to be done like casting data types appropriately, renaming columns to stick to data contract names, logic to change certain fields like zipcode or creating booleans, and commenting out empty or non valuable columns. I also made a star schema diagram to help plan this all out.
     """)
     
-    st.image('/images/psql.png')
+    st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/dbt.png')
 
     st.markdown("""       
     Step 9:
