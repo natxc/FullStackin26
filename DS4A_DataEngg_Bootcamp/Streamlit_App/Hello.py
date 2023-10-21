@@ -88,10 +88,15 @@ def explanation():
     st.markdown("""          
     
     ### Step 8:
-    Added the `dbt_utils` package and created the staging models in dbt. After those were built, I made a star schema diagram to help prepare a plan to build the fact and dimension models and to help avoid many-to-many relationships on the joins. Then I created the final datamodel. Some cleaning needed to be done like casting data types appropriately, renaming columns to adhere to data contract names, adding logic to change certain fields like zipcode, creating booleans, and disabling empty or unvaluable columns.
+    Added the `dbt_utils` package and created the staging models in dbt.
     """)
     
     st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/dbt.png?raw=true')
+
+    st.markdown(""" 
+    After those were built, I made a star schema diagram to help prepare a plan to build the fact and dimension models and to help avoid many-to-many relationships on the joins. Then I created the final datamodel. Some cleaning needed to be done like casting data types appropriately, renaming columns to adhere to data contract names, adding logic to change certain fields like zipcode, creating booleans, and disabling empty or unvaluable columns.""")
+
+    st.image('https://miro.medium.com/v2/resize:fit:1400/1*Aa5f69jOLbOkVNKRp7g-CA.png')
 
     st.markdown("""       
     
@@ -296,9 +301,9 @@ def chatbot():
 
 page_names_to_funcs = {
     "—": intro,
-    "Explanation": explanation,
     "Visualizations": visualizations,
     "Chatbot": chatbot,
+    "Explanation": explanation,
 }
 
 demo_name = st.sidebar.selectbox("Choose a page", page_names_to_funcs.keys())
