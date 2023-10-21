@@ -26,7 +26,7 @@ def intro():
 def explanation():
     st.markdown(
             """
-    # My Approach and Thinking
+    ## My Approach and Thinking
 
     The focus on this project was more so to utilize Large Language Models (LLMs) and Streamlit's User Interface (UI) capabilities to build a chatbot, but I also wanted to flex some data engineering skills and incorporate a stack I've never used.
 
@@ -130,7 +130,99 @@ def explanation():
     """)
 
 def visualizations():
-    pass
+    import plotly.express as px
+    conn = st.experimental_connection("snowpark")
+
+    st.markdown(""" ### Charts and Analysis: """)
+    st.write("This portion visualizes and explains insights from the Big Supply Co. `orders` table. You can add filters using the panel on the left.")
+    data = conn.query("select * from AIRBYTE_DATABASE.AIRBYTE_SCHEMA.ORDERS")
+
+    # Sidebar with filter options
+    st.sidebar.subheader("Filter Data")
+    selected_region = st.sidebar.selectbox("Select Region", data['ORDER_REGION_ADDR'].unique())
+    selected_category = st.sidebar.selectbox("Select Category", data['CATEGORY_NAME_ATTR'].unique())
+    selected_segment = st.sidebar.selectbox("Select Customer Segment", data['CUSTOMER_SEGMENT_CAT'].unique())
+
+    # Explanation for filter options
+    st.sidebar.write("You can filter data by region, product category, and customer segment.")
+
+    # Filter the data based on user selection
+    filtered_data = data[
+        (data['ORDER_REGION_ADDR'] == selected_region) &
+        (data['CATEGORY_NAME_ATTR'] == selected_category) &
+        (data['CUSTOMER_SEGMENT_CAT'] == selected_segment)
+    ]
+
+    st.header("View the raw, filtered data first:")
+
+    # Explanation for the selected filters
+    # st.write(f"Filtered by Region: {selected_region}")
+    # st.write(f"Filtered by Category: {selected_category}")
+    # st.write(f"Filtered by Customer Segment: {selected_segment}")
+
+    # Show the filtered data
+    st.dataframe(filtered_data)
+
+    # Add a switch button to toggle between overall and filtered dataset
+    st.subheader("For these charts, you can use this toggle here to view them by the filters you provided or by the complete dataset for the full picture:")
+    use_filtered_data = st.checkbox("Use Filtered Data")
+
+    # Filter the data based on user selection or use the overall dataset
+    if use_filtered_data:
+        data = filtered_data
+    else:
+        data = data
+
+    # Visualization 1: Sales by Region
+    st.header("Sales by Region")
+    region_sales = data.groupby('ORDER_REGION_ADDR')['SALES_AMT'].sum().reset_index()
+    fig1 = px.bar(region_sales, x='ORDER_REGION_ADDR', y='SALES_AMT', title="Total Sales by Region")
+    fig1.update_xaxes(title_text="Region")
+    fig1.update_yaxes(title_text="Total Sales Amount")
+    st.plotly_chart(fig1)
+    st.write("This bar chart shows the total sales amount for each region.")
+
+    # # Visualization 2: Product Price Variance
+    # st.header("Product Price Variance")
+    # product_variance = data.groupby('PRODUCT_CARD_ID')['PRODUCT_PRICE_AMT'].var().reset_index()
+    # fig2 = px.histogram(product_variance, x='PRODUCT_PRICE_AMT', nbins=30, title="Product Price Variance")
+    # st.plotly_chart(fig2)
+    # st.write("This histogram represents the variance in product prices. A higher variance indicates price fluctuations.")
+
+    # # Visualization 3: Average Order Amount by Customer Segment
+    # st.header("Average Order Amount by Customer Segment")
+    # avg_order_segment = data.groupby('CUSTOMER_SEGMENT_CAT')['ORDER_ITEM_TOTAL_AMT'].mean().reset_index()
+    # fig3 = px.bar(avg_order_segment, x='CUSTOMER_SEGMENT_CAT', y='ORDER_ITEM_TOTAL_AMT', title="Average Order Amount by Customer Segment")
+    # fig3.update_xaxes(title_text="Customer Segment")
+    # fig3.update_yaxes(title_text="Total Order Item Amount")
+    # st.plotly_chart(fig3)
+    # st.write("This bar chart displays the average order amount for each customer segment.")
+    
+    # Create a combo line chart for sales and profit over time
+    st.header(f"Sales and Profit Over Time")
+    sales_profit_data = data.groupby('ORDER_DT').agg({'SALES_AMT': 'sum', 'ORDER_PROFIT_AMT': 'sum'}).reset_index()
+    fig_combo = px.line(sales_profit_data, x='ORDER_DT', y='SALES_AMT', title="Sales Over Time")
+    fig_combo.add_bar(x=sales_profit_data['ORDER_DT'], y=sales_profit_data['ORDER_PROFIT_AMT'], name="Profit")
+    fig_combo.update_xaxes(title_text="Date")
+    fig_combo.update_yaxes(title_text="Sales and Profit")
+    st.plotly_chart(fig_combo)
+    st.write("This combo chart displays both sales and profit over time for the selected region.")
+
+    # Visualization 4: Delivery Status
+    st.header("Delivery Status")
+    delivery_status = data['DELIVERY_STATUS_CAT'].value_counts().reset_index()
+    fig4 = px.pie(delivery_status, names='DELIVERY_STATUS_CAT', values='count', title="Delivery Status Distribution")
+    fig4.update_xaxes(title_text="Delivery Status")
+    fig4.update_yaxes(title_text="Frequency")
+    st.plotly_chart(fig4)
+    st.write("This pie chart illustrates the distribution of delivery statuses for orders.")
+
+    st.markdown(""" ### QIY (Query it yourself 💪): """)
+    text_input = st.text_input("Replace this with your own SQL query 👇 (you can just use `table` instead of any specifics)", "select * from table limit 10;",)
+    message = text_input.replace('table', 'AIRBYTE_DATABASE.AIRBYTE_SCHEMA.ORDERS')
+    message = conn.query(message)
+    st.dataframe(message)
+
 
 def chatbot():
     import openai
@@ -173,14 +265,12 @@ def chatbot():
             message = {"role": "assistant", "content": response}
             # Parse the response for a SQL query and execute if available
             sql_match = re.search(r"```sql\n(.*)\n```", response, re.DOTALL)
+            conn = st.experimental_connection("snowpark")
+            # conn = st.experimental_connection("postgresql", type="sql")
             if sql_match:
                 sql = sql_match.group(1)
-                # conn = st.experimental_connection("postgresql", type="sql")
-                conn = st.experimental_connection("snowpark")
                 sql = sql.replace('<tableName>', 'AIRBYTE_DATABASE.AIRBYTE_SCHEMA.ORDERS')
                 if not re.search(r'\b(update|delete|insert)\b', sql, re.IGNORECASE):
-                    # conn = st.experimental_connection("postgresql", type="sql")
-                    conn = st.experimental_connection("snowpark")
                     message["results"] = conn.query(sql)
                     # Adding bar charts if there is at least 1 dimension and 1 measure
                     if len(message["results"].columns) == 2:
