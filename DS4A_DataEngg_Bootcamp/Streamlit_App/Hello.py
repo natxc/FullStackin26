@@ -8,10 +8,10 @@ st.set_page_config(
     page_icon="📊",
 )
 
-st.title('Big Supply Co - Retail Analysis')
+st.title('Big Supply Co. - Retail Analysis')
 
 def intro():
-    st.write("### Welcome to Big Supply Co, Info! 👋")
+    st.write("### Welcome to Big Supply Co. Info! 👋")
     st.sidebar.success("Select a page above.")
 
     st.markdown(
@@ -28,24 +28,24 @@ def explanation():
             """
     # My Approach and Thinking
 
-    The focus on this project was moreso utilizing LLMs and Streamlit's UI capabilities to build a chatbot, but I wanted to flex some data engineering skills too and incorporate a stack I've never used before.
+    The focus on this project was more so to utilize Large Language Models (LLMs) and Streamlit's User Interface (UI) capabilities to build a chatbot, but I also wanted to flex some data engineering skills and incorporate a stack I've never used.
 
-    Specifically, the only guidelines for and outcomes of the project are as follows: Design and develop a user-friendly chatbot in Streamlit that interacts with a retail database, enabling it to answer questions on sales, marketing, and production. The chatbot should create and execute SQL queries on the database while also displaying the SQL query and relevant data in a Streamlit app.
+    Specifically, the only guidelines for and outcomes of the project were to design and develop a user-friendly chatbot in Streamlit that interacts with a retail database, enabling it to answer questions on sales, marketing, and production. The chatbot should create and execute SQL queries on the database while also displaying the SQL query and relevant data in a Streamlit app.
 
-    There are many ways one could approach this in a simpler way; just using the provided CSVs locally for the project, using a dbt seed, uploading files directly to S3 or Snowflake, the list goes on. However, I really wanted an opportunity to utilize Airflow, PostgreSQL, Docker, Airbyte, dbt, S3 buckets and a little AWS CLI. Luckily, most of these are open source tools too and all were free for my use-cases.
+    There are many ways one could approach this in a simpler way by just using the provided CSVs locally for the project, using a data build tool (dbt) seed, uploading files directly to S3 or Snowflake, the list goes on. However, I really wanted an opportunity to utilize Airflow, PostgreSQL, Docker, Airbyte, dbt, S3 buckets and a little AWS CLI. Luckily, most of these are open source tools and all were free for my use-cases.
 
-    By using all of these tools, I was able to not only do ETL, but also ELT and reinforce kimball datawarehousing methodologies, data contracts, and more. Granted, this process would be a terrible and roundabout way to model data for a product, but I learned a lot and had fun along the way.
+    By using all of these tools, I was able to not only do Extract, Transform, Load (ETL), but also Extract, Load, Transform (ELT) and reinforce Kimball datawarehousing methodologies, data contracts, and more. Granted, this whole process would be a terrible and roundabout way to model data for a product, but I learned a lot and had fun along the way.
 
-    Ultimately, my recommendation would be to use dbt and a Snowflake data warehouse. Snowflake has acquired Streamlit so it has become a very strong pair and OpenAI has only solidified both of those tools. If I was feeling extra fun, I would set up Fivetran or Rivery to extract my Postgres data models to Snowflake and then use Snowpark for this. How many other tools can I add to make the most complicated ELT/ETL journey possible???
+    Ultimately, my recommendation would be to use dbt and a Snowflake data warehouse. Snowflake has acquired Streamlit, so it has become a very strong pair and OpenAI has only solidified both of those tools. If I was feeling extra creative, I would add one more step and set up Fivetran or Rivery to extract my Postgres data models to Snowflake. How many other tools can I add to make this the most complicated ELT/ETL journey possible???
 
-    You know what, I actually do like that idea better. So I did just that! Well, no new tools, just using Airbyte to load my Postgres models to Snowflake. Should I go back and add Dagster to the mix for fun though..
+    I actually did like that idea better, so I did just that! Without any new tools, I just used Airbyte to load my Postgres models to Snowflake. Should I go back and add Dagster to the mix for fun though..
 
     High level breakdown of my process:
 
     ## Data Engineering:
 
     ### Step 1:
-    Creating the environment (I prefer conda) and installing the packages:
+    Created the environment (I prefer conda) and installed the packages:
     - Kubernetes
     - PostgreSQL
     - Airflow
@@ -55,7 +55,7 @@ def explanation():
     Specifics can be found in requirements.txt
 
     ### Step 2:
-    Initialize my postgres db. Create myself as a non-superuser and then create a new inner database. Also added postgres files to gitignore. Initialized the db and created a schema. Learned a lot of psql commands too!
+    Initialized the Postgres database (db). Created myself as a non-superuser and then created a new inner database. Initialized the db and created a schema. During this step, I learned a lot of psql commands, too!
     """)
 
     st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/psql.png?raw=true')
@@ -63,16 +63,16 @@ def explanation():
     st.markdown("""
     
     ### Step 3:
-    Getting airflow setup with postgres. Running the webserver and enabling a DAG.
+    Set up Airflow with Postgres. Ran the webserver and enabled the relevant directed acyclic graphs (DAG).
 
     ### Step 4:
-    Initializing a dbt project and connecting to postgres.
+    Initialized a dbt project and connected to Postgres.
 
     ### Step 5:
-    Create an AWS account and create an S3 bucket.
+    Created an Amazon Web Services (AWS) account and created an S3 (Amazon Simple Storage Service) bucket.
     
     ### Step 6:
-    Add CSVs to S3 buckets via Airflow.
+    Added comma-separated values (CSV) files to S3 buckets via Airflow.
                 """)
                 
     st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/airflow.png?raw=true')
@@ -80,7 +80,7 @@ def explanation():
     st.markdown(""" 
     
     ### Step 7:
-    Load data from S3 to PostgreSQL via Airbyte. I learned a lot about iam, policies and permissions, and even AWS CLI along the way. Airbyte was nice as it already had out of the box connections for S3 and Postgres.
+    Loaded data from S3 to Postgres via Airbyte. Learned a lot about iam, policies and permissions, and even AWS Command Line Interface (CLI) along the way. Airbyte was nice as it already had out of the box connections for S3 and Postgres.
     """)
 
     st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/airbyte.png?raw=true')
@@ -88,7 +88,7 @@ def explanation():
     st.markdown("""          
     
     ### Step 8:
-    Add the dbt_utils packages and in dbt start to create the staging, dim, and facts models. Then create the final datamodel. Some cleaning needed to be done like casting data types appropriately, renaming columns to stick to data contract names, logic to change certain fields like zipcode or creating booleans, and commenting out empty or non valuable columns. I also made a star schema diagram to help plan this all out and to help avoid many to many relationships on the joins.
+    Added the `dbt_utils` package and created the staging models in dbt. After those were built, I made a star schema diagram to help prepare a plan to build the fact and dimension models and to help avoid many-to-many relationships on the joins. Then I created the final datamodel. Some cleaning needed to be done like casting data types appropriately, renaming columns to adhere to data contract names, adding logic to change certain fields like zipcode, creating booleans, and disabling empty or unvaluable columns.
     """)
     
     st.image('https://github.com/natxc/FullStackin26/blob/main/DS4A_DataEngg_Bootcamp/Streamlit_App/images/dbt.png?raw=true')
@@ -96,37 +96,37 @@ def explanation():
     st.markdown("""       
     
     ### Step 9:
-    Add in tests and source freshness, even though I will never add more data to this warehouse ever :)
+    Added in tests and source freshness, even though I will never add more data to this warehouse...ever!
 
     ### Step 10:
-    Move Postgres models to Snowflake so I don't have to worry about any servers.
+    Moved Postgres models to Snowflake to eliminate worry about any servers.
 
     ## UI:
 
     ### Step 1:
-    Installing the packages:
+    Installed the packages:
     - Streamlit
     - OpenAI
     - Snowpark
     - Plotly
 
     ### Step 2:
-    Create Streamlit python file and secrets file then add and test the Postgres connection.
+    Created the main Streamlit Python file and secrets file, then added and tested the Postgres connection.
 
     ### Step 3:
-    Add chatbot! Which entailed a main file and a promps.py file for prompt engineering.
+    Added chatbot, which entailed a main function and a prompts.py file for prompt engineering.
 
     ### Step 4:
-    In dbt, I created a new metadata table with descriptions and datatypes. Used a dbt seed this time ;) And did a `--full-refresh` seed run whenever I would update the column names as I went.
+    Created a new metadata table with descriptions and datatypes. I used a dbt seed this time, and did a `--full-refresh` seed run whenever I updated the column names.
 
     ### Step 5:
-    Updated the prompts file as any hallucinations from the chatbot occured!
+    Updated the prompts file as any hallucinations from the chatbot occured.
 
     ### Step 6:
-    Add more fun visualizations including charts based on the chatbot's output. And some text boxes for executing database queries. But I had to consider security for DML operations and be careful with possible SQL injections. I had to restrict DML operations such as DELETE, UPDATE, and so on.
+    Added more fun visualizations, including charts based on the chatbot's output, and some text boxes for executing database queries; however, I had to consider security for Data Manipulation Language (DML) operations to avoid possible Structured query language (SQL) injections. I added that component to my prompts and restricted DML operations such as `delete`, `update`, and so on in my function.
 
     ### Step 7:
-    Deploy and enjoy!
+    Deployed and enjoyed!
     """)
 
 def visualizations():
