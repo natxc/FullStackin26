@@ -169,7 +169,7 @@ def visualizations():
     st.dataframe(filtered_data)
 
     # Add a switch button to toggle between overall and filtered dataset
-    st.subheader("For these charts, you can use this toggle here to view them by the filters you provided or by the complete dataset for the full picture:")
+    st.subheader("For these charts, you can use this toggle here to view by the filters you provided or by the complete dataset for the full picture:")
     use_filtered_data = st.checkbox("Use Filtered Data")
 
     # Filter the data based on user selection or use the overall dataset
@@ -222,7 +222,7 @@ def visualizations():
     st.plotly_chart(fig4)
     st.write("This pie chart illustrates the distribution of delivery statuses for orders.")
 
-    st.markdown(""" ### QIY (Query it yourself 💪): """)
+    st.markdown(""" ### QIY (Query It Yourself 💪): """)
     text_input = st.text_input("Replace this with your own SQL query 👇 (you can just use `table` instead of any specifics)", "select * from table limit 10;",)
     message = text_input.replace('table', 'AIRBYTE_DATABASE.AIRBYTE_SCHEMA.ORDERS')
     message = conn.query(message)
