@@ -2,15 +2,17 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
+import openai
 
 st.set_page_config(
-    page_title="Big Supply Co",
+    page_title="Big Supply Co - Retail and Finance Projects",
     page_icon="📊",
 )
 
-st.title('Big Supply Co. - Retail Analysis')
+openai.api_key = st.secrets.OPENAI_API_KEY
 
 def intro():
+    st.title('Big Supply Co - Retail and Finance Projects')
     st.write("### Welcome to Big Supply Co. Info! 👋")
     st.sidebar.success("Select a page above.")
 
@@ -18,12 +20,13 @@ def intro():
             """
 
 
-            **👈 Select a page from the dropdown on the left** to see some data visualizations, talk to the chatbot, or take a step inside my brain as I made this web app.
+            **👈 Select an option to choose between Retail or Finance projects on the left** and then choose a page from the dropdown to see some data visualizations, talk to the chatbot, take a step inside my brain as I made this web app, use the data ingestion tool, or see data science results.
         """)
 
     st.image('https://static.vecteezy.com/system/resources/previews/025/501/341/non_2x/sport-equipment-on-a-black-background-sports-equipment-on-a-black-background-sports-equipment-on-a-dark-background-ai-generated-free-photo.jpg')
 
 def explanation():
+    st.title('Big Supply Co. - Retail Analysis')
     st.markdown(
             """
     ## My Approach and Thinking
@@ -135,6 +138,7 @@ def explanation():
     """)
 
 def visualizations():
+    st.title('Big Supply Co. - Retail Analysis')
     import plotly.express as px
     conn = st.experimental_connection("snowpark")
 
@@ -230,12 +234,12 @@ def visualizations():
 
 
 def chatbot():
-    import openai
     import re
     from prompts import get_system_prompt
 
+    st.title('Big Supply Co. - Retail Analysis')
+
     # # Initialize the chat messages history
-    openai.api_key = st.secrets.OPENAI_API_KEY
     if "messages" not in st.session_state:
         # system prompt includes table information, rules, and prompts the LLM to produce
         # a welcome message to the user.
@@ -299,12 +303,180 @@ def chatbot():
                 st.dataframe(message["results"])
             st.session_state.messages.append(message)
 
-page_names_to_funcs = {
+def data_ingestor():
+    import time
+    import snowflake.snowpark as snowpark
+
+    st.title('Big Supply Co. - Finance Analysis')
+
+    st.title('Data Ingestion Tool')
+
+    st.header('Upload your dataset for processing')
+
+    uploaded_file = st.file_uploader("Choose a file", type=['CSV','PARQUET'])
+    if uploaded_file is not None:
+        if type == 'CSV':
+            dataframe = pd.read_csv(uploaded_file, encoding = 'utf-8')
+        else: 
+            dataframe = pd.read_parquet(uploaded_file)
+        st.write(dataframe)
+
+    st.header('Upload the transformations you want to apply')
+
+    ## TODO: Add at least 5 transformations that you consider will be beneficial for cleaning the data in order to be consumed by a machine learning model.
+
+    uploaded_transformation_file = st.file_uploader("Choose a JSON file", type=['JSON'])
+    if uploaded_transformation_file is not None:
+        dataframe_transformations = pd.read_json(uploaded_transformation_file)
+        st.write(dataframe_transformations)
+
+        compare_copy = dataframe.copy()
+        if st.button('Apply Transformations'):
+            with st.spinner('Applying Transformations...'):
+                for column in dataframe.columns:
+                    if column in dataframe_transformations.columns:
+
+                        dtype_rule = dataframe_transformations.loc['astype', column]
+                        map_rule = dataframe_transformations.loc['map', column]
+
+                        if not pd.isna(dtype_rule):
+                            # Convert the column to the specified data type if the rule is not NaN
+                            dataframe[column] = dataframe[column].astype(dtype_rule)
+
+                        if not pd.isna(map_rule):
+                            # Map values in the column based on the provided mapping if the rule is not NaN
+                            dataframe[column] = dataframe[column].map(map_rule)
+                time.sleep(1)
+                if dataframe.equals(compare_copy):
+                    st.info("Transformations Not Applicable.")
+                else:
+                    st.success("Transformations Applied!")
+                    st.write(dataframe)
+
+        st.header('Data export to SQL Database')
+
+        conn = st.experimental_connection("snowpark")
+        session = st.experimental_connection("snowpark").session
+
+        option = st.selectbox(
+        "Select Table",
+        ("Create table and insert data", "Insert into already existing table"),
+        index=None,
+        placeholder="Choose existing table or create new",
+        )
+
+        if option == "Create table and insert data":
+            tablename_input = st.text_input('Enter Table Name')
+            if st.button('Update to SQL Database'):        
+                # Create a new table with the provided name
+                snowparkDf = session.write_pandas(dataframe, tablename_input.upper(), database = "AIRBYTE_DATABASE", schema = "FINANCE", auto_create_table = True, overwrite = True)
+                st.write(f"Table '{tablename_input}' was created and data was inserted!")
+
+
+        elif option == "Insert into already existing table":        
+            existing_tables = pd.DataFrame(session.sql('SHOW TABLES IN AIRBYTE_DATABASE.FINANCE;').collect())['name'].to_list()
+            selected_table = st.selectbox("Select Existing Table", existing_tables)
+
+            if st.button('Update to SQL Database'):
+                # Insert 'dataframe' data into the selected existing table
+                existing_df = session.table("AIRBYTE_DATABASE.FINANCE." + selected_table).to_pandas()
+                existing_df = pd.concat([existing_df, dataframe])
+                snowparkDf = session.write_pandas(existing_df, selected_table, database = "AIRBYTE_DATABASE", schema = "FINANCE", auto_create_table = True, overwrite = True)
+                st.success(f"Table {selected_table} was updated!")
+                dataframe = existing_df.copy()
+        
+        else:
+            pass
+                
+        st.header('Data export to CSV')
+
+        filename_input = st.text_input('Enter File Name')
+
+        @st.cache_resource
+        def convert_df(df):
+            # IMPORTANT: Cache the conversion to prevent computation on every rerun
+            return df.to_csv().encode('utf-8')
+
+        csv = convert_df(dataframe)
+
+        if ('csv' or 'CSV') not in filename_input:
+            st.download_button(
+                label="Download Dataframe as CSV",
+                data=csv,
+                file_name=filename_input+'.csv',
+                mime='text/csv',
+            )
+        else:
+            st.download_button(
+                label="Download Dataframe as CSV",
+                data=csv,
+                file_name=filename_input,
+                mime='text/csv',
+            )
+
+        st.header('Describe sample dataset the simple way')
+        
+        def describeDF(df):
+            
+            st.write("Here's some stats about the loaded data:")
+            numeric_types = ['int64', 'float64']
+            numeric_columns = df.select_dtypes(include=numeric_types).columns.tolist()
+
+            # Get categorical columns
+            categorical_types = ['object']
+            categorical_columns = df.select_dtypes(include=categorical_types).columns.tolist()
+
+            st.write("Relational schema:")
+        
+            columns = df.columns.tolist()
+            st.write(columns)
+            
+            col1, col2, = st.columns(2)
+            with col1:
+                st.write('Numeric columns:\t', numeric_columns)
+
+            with col2:
+                st.write('Categorical columns:\t', categorical_columns)
+            
+            # Calculte statistics for our dataset
+            st.dataframe(df.describe(include='all'), use_container_width=True)
+
+        if st.button('Analyze Data Sample'):
+            with st.spinner('Analyzing dataset...'):
+                time.sleep(1)
+                describeDF(dataframe)
+
+        st.header('Describe sample dataset with OpenAI API')
+
+        if st.button('Analyze Data Sample with LLMs'):
+            with st.spinner('Analyzing dataset...'):
+                df_prompt = f"Give basic analytics on this dataframe: {dataframe}. This could include counts, sums, and averages. As well as overall sentences on any trends or conclusions that can be made after viewing the data. There should be multiple facts you give."
+                # completion = openai.Completion.create(model="text-davinci-003", prompt = df_prompt, n = 10, max_tokens = 400, stop = None, temperature = 0.1)
+                # text_list = [choice.text for choice in completion.choices]
+                # st.write('\n'.join(text_list))
+                completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[
+                    {"role": "system", "content": "You are a helpful assistant, skilled in data analysis and describing dataframes."},
+                    {"role": "user", "content": df_prompt}])                
+                st.success(completion.choices[0].message["content"])
+
+
+page_names_to_funcs_retail = {
     "—": intro,
     "Visualizations": visualizations,
     "Chatbot": chatbot,
     "Explanation": explanation,
 }
 
-demo_name = st.sidebar.selectbox("Choose a page", page_names_to_funcs.keys())
-page_names_to_funcs[demo_name]()
+page_names_to_funcs_finance = {
+    "Data Ingestion Tool": data_ingestor,
+}
+
+st.sidebar.header("Toggle Between Projects")
+project_selector = st.sidebar.radio("Select a Project", ("Retail", "Finance"))
+
+if project_selector == "Retail":
+    demo_name = st.sidebar.selectbox("Choose a page", page_names_to_funcs_retail.keys())
+    page_names_to_funcs_retail[demo_name]()
+else:
+    demo_name = st.sidebar.selectbox("Choose a page", page_names_to_funcs_finance.keys())
+    page_names_to_funcs_finance[demo_name]()
