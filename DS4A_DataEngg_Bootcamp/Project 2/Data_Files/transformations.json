@@ -1,0 +1,10 @@
+{
+    "Expires": {"astype":"datetime64[ns]"},
+	"Card Number": {"astype":"str"},
+    "Card Number": {"len":11},
+    "Has Chip": {"map":{"YES":1, "NO":0}},
+    "Card on Dark Web": {"map":{"YES":1, "NO":0}},
+    "Is Fraud?": {"map":{"YES":1, "NO":0}},
+    "Acct Open Date": {"datediff":"Today"},
+    "CARD INDEX": {"rename":"Card Index"}
+}

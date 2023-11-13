@@ -2,7 +2,20 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
+import plotly.express as px
+import snowflake.snowpark as snowpark
+from prompts import get_system_prompt
 import openai
+import time
+from datetime import datetime
+import re    
+import category_encoders as ce
+from imblearn.under_sampling import RandomUnderSampler
+from sklearn.preprocessing import StandardScaler, FunctionTransformer, LabelEncoder, OneHotEncoder
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.pipeline import Pipeline
 
 st.set_page_config(
     page_title="Big Supply Co - Retail and Finance Projects",
@@ -139,7 +152,6 @@ def explanation():
 
 def visualizations():
     st.title('Big Supply Co. - Retail Analysis')
-    import plotly.express as px
     conn = st.experimental_connection("snowpark")
 
     st.markdown(""" ### Charts and Analysis: """)
@@ -234,9 +246,6 @@ def visualizations():
 
 
 def chatbot():
-    import re
-    from prompts import get_system_prompt
-
     st.title('Big Supply Co. - Retail Analysis')
 
     # # Initialize the chat messages history
@@ -304,9 +313,6 @@ def chatbot():
             st.session_state.messages.append(message)
 
 def data_ingestor():
-    import time
-    import snowflake.snowpark as snowpark
-
     st.title('Big Supply Co. - Finance Analysis')
 
     st.title('Data Ingestion Tool')
@@ -330,6 +336,16 @@ def data_ingestor():
         dataframe_transformations = pd.read_json(uploaded_transformation_file)
         st.write(dataframe_transformations)
 
+#         {
+#     "Expires": {"astype":"date"},
+# 	"Card Number": {"astype":"str"},
+#     "Card Number": {"len":12},
+#     "Has Chip": {"map":{"YES":1, "NO":0}},
+#     "Card on Dark Web": {"map":{"YES":1, "NO":0}},
+#     "Acct Open Date": {"datediff":"Today"},
+#     "CARD INDEX": {"rename":"Card Index"}
+# }
+
         compare_copy = dataframe.copy()
         if st.button('Apply Transformations'):
             with st.spinner('Applying Transformations...'):
@@ -338,6 +354,9 @@ def data_ingestor():
 
                         dtype_rule = dataframe_transformations.loc['astype', column]
                         map_rule = dataframe_transformations.loc['map', column]
+                        rename_rule = dataframe_transformations.loc['rename', column]
+                        datediff_rule = dataframe_transformations.loc['datediff', column]
+                        validate_rule = dataframe_transformations.loc['len', column]
 
                         if not pd.isna(dtype_rule):
                             # Convert the column to the specified data type if the rule is not NaN
@@ -346,6 +365,17 @@ def data_ingestor():
                         if not pd.isna(map_rule):
                             # Map values in the column based on the provided mapping if the rule is not NaN
                             dataframe[column] = dataframe[column].map(map_rule)
+
+                        if not pd.isna(rename_rule):
+                            dataframe.rename(columns={column: rename_rule}, inplace=True)
+
+                        if not pd.isna(datediff_rule):
+                            current_date = datetime.today()
+                            dataframe[column] = pd.to_datetime(dataframe[column])
+                            dataframe['Days Since Opening Acct'] = (current_date - dataframe[column]).dt.days
+
+                        # if not pd.isna(validate_rule):
+                        #     dataframe = dataframe[dataframe[column].astype(str).str.len() == validate_rule]
                 time.sleep(1)
                 if dataframe.equals(compare_copy):
                     st.info("Transformations Not Applicable.")
@@ -355,7 +385,7 @@ def data_ingestor():
 
         st.header('Data export to SQL Database')
 
-        conn = st.experimental_connection("snowpark")
+        # conn = st.experimental_connection("snowpark")
         session = st.experimental_connection("snowpark").session
 
         option = st.selectbox(
@@ -459,6 +489,289 @@ def data_ingestor():
                     {"role": "user", "content": df_prompt}])                
                 st.success(completion.choices[0].message["content"])
 
+def data_science():
+    st.write("""The task: build a predictive model to determine the likelihood (by assigning a risk score) of a new transaction being fraudulent or not""")
+        
+    df = pd.read_parquet('../Project 2/Data_Files/credit_card_transaction_data_de.parquet') #, encoding='ISO-8859-1')
+    
+    # Perform exploratory data analysis to identify insights and patterns that can help you build the model.
+    # Understand the dataset and its features to assess data quality and prepare it as needed.
+    
+
+    df["Amount"] = df["Amount"].str.replace("$","").astype(float)
+    df = df[df['Merchant State'] != 'Italy']
+    df['Date'] = pd.to_datetime(df[['Year', 'Month', 'Day']]) #  Combine the columns into a new 'date' column
+    df["Hour"] = df["Time"].str[0:2]
+    df["Minute"] = df["Time"].str[3:5]
+    df = df.drop(['Time'],axis=1)
+    days = {0: 'Mon', 1: 'Tue', 2: 'Wed', 3: 'Thu', 4: 'Fri', 5: 'Sat', 6: 'Sun'}
+    df['Day of Week'] = df['Date'].dt.dayofweek.map(days)
+    df["Is Fraud?"] = df["Is Fraud?"].apply(lambda x: 1 if x == 'Yes' else 0)
+    fraud_data = df[df['Is Fraud?'] == 1]
+    
+    # # Filter data to limit the x-axis range
+    # filtered_data = fraud_data[(fraud_data['Amount'] >= -200) & (fraud_data['Amount'] <= 2000)]
+
+    # Create a histogram using Plotly
+    st.subheader('Distribution of Fraudulent Transaction Amounts')
+
+    fig = px.histogram(fraud_data, x='Amount', nbins=80)
+    fig.update_traces(marker_color='navy', marker_line_color='black', marker_line_width=1)
+
+    # Customize the layout
+    fig.update_layout(
+        xaxis_title='Amount',
+        yaxis_title='Number of Transactions',
+    )
+
+    # Display the Plotly figure in Streamlit
+    st.plotly_chart(fig)
+
+
+    st.subheader('Number of Fraudulent Transactions by State')
+
+    # Get the top 30 cities
+    top_cities = fraud_data['Merchant State'].value_counts().head(30)
+
+    # Create a bar chart using Plotly
+    fig = px.bar(top_cities, x=top_cities.values, y=top_cities.index, orientation='h')
+    fig.update_traces(marker_color='navy', marker_line_color='black', marker_line_width=1)
+
+    # Customize the layout
+    fig.update_layout(
+        xaxis_title='Number of Transactions',
+        yaxis_title='Merchant State',
+    )
+
+    st.plotly_chart(fig)
+
+    
+    st.subheader('Number of Fraudulent Transactions by Top 30 Cities')
+
+    top_cities = fraud_data['Merchant City'].value_counts().head(30)
+
+    fig = px.bar(top_cities, x=top_cities.values, y=top_cities.index, orientation='h')
+    fig.update_traces(marker_color='navy', marker_line_color='black', marker_line_width=1)
+
+    fig.update_layout(
+        xaxis_title='Number of Transactions',
+        yaxis_title='Merchant City',
+    )
+
+    st.plotly_chart(fig)
+
+    
+    st.subheader('Number of Fraudulent Transactions by Year')
+
+    fig = px.bar(fraud_data['Year'].value_counts().reset_index().sort_values(by='Year'), x='Year', y='count')
+    fig.update_traces(marker_color='navy', marker_line_color='black', marker_line_width=1)
+
+    fig.update_layout(
+        xaxis_title='Year',
+        yaxis_title='Number of Transactions',
+        xaxis_type='category',
+    )
+
+    st.plotly_chart(fig)
+
+    
+    st.subheader('Number of Fraudulent Transactions by Month')
+
+    fig = px.bar(fraud_data['Month'].value_counts().reset_index().sort_values(by='Month'), y='count', x='Month')
+    fig.update_traces(marker_color='navy', marker_line_color='black', marker_line_width=1)
+
+    fig.update_layout(
+        xaxis_title='Month',
+        yaxis_title='Number of Transactions',
+        xaxis_type='category',
+    )
+
+    st.plotly_chart(fig)
+
+    
+    st.subheader('Number of Fraudulent Transactions by Day of the Month')
+
+    fig = px.bar(fraud_data['Day'].value_counts().reset_index().sort_values(by='Day'), y='count', x='Day')
+    fig.update_traces(marker_color='navy', marker_line_color='black', marker_line_width=1)
+
+    fig.update_layout(
+        xaxis_title='Day of the Month',
+        yaxis_title='Number of Transactions',
+        xaxis_type='category',
+    )
+
+    st.plotly_chart(fig)
+
+
+    st.subheader('Number of Fraudulent Transactions by Day of the Week')
+
+    fig = px.bar(fraud_data['Day of Week'].value_counts().reset_index().sort_values(by='Day of Week'), y='count', x='Day of Week')
+    fig.update_traces(marker_color='navy', marker_line_color='black', marker_line_width=1)
+
+    fig.update_layout(
+        xaxis_title='Day of the Week',
+        yaxis_title='Number of Transactions',
+        xaxis_type='category',
+    )
+
+    st.plotly_chart(fig)
+
+
+    st.subheader('Number of Fraudulent Transactions by Hour')
+
+    fig = px.bar(fraud_data['Hour'].value_counts().reset_index().sort_values(by='Hour'), y='count', x='Hour')
+    fig.update_traces(marker_color='navy', marker_line_color='black', marker_line_width=1)
+
+    fig.update_layout(
+        xaxis_title='Hour',
+        yaxis_title='Number of Transactions',
+        xaxis_type='category',
+    )
+
+    st.plotly_chart(fig)
+
+    
+    st.subheader('Distribution of Fraudulent Transactions by Use Chip')
+
+    fig = px.bar(fraud_data['Use Chip'].value_counts().reset_index().sort_values(by='Use Chip'), y='count', x='Use Chip', color='Use Chip')
+    fig.update_traces(marker_line_color='black', marker_line_width=1)
+
+    fig.update_layout(
+        xaxis_title='Use Chip',
+        yaxis_title='Number of Transactions',
+        xaxis_type='category',
+        showlegend=False
+    )
+
+    st.plotly_chart(fig)
+    
+    @st.cache_data # making this a function so it can be cached
+    def randomF():
+        # Conduct feature engineering to select relevant features for the model.
+        # Define a strategy to experiment with possible solutions.
+        columns_to_select = ['Year', 'Hour', 'Day of Week', 'Amount', 'Use Chip', 'Merchant Name', 'MCC', 'Is Fraud?']
+        df = df[columns_to_select]
+
+        def clean(df):
+            df['Hour'] = df['Hour'].astype('float')
+            
+            scaler = StandardScaler()
+            df['Amount'] = scaler.fit_transform(df[['Amount']])
+        
+            cat_col = ['Use Chip', 'Day of Week']
+            for col in cat_col:
+                if col in df.columns:
+                    be = ce.BinaryEncoder(drop_invariant=False)
+                    enc_df = pd.DataFrame(be.fit_transform(df[col]), dtype='int8')
+                    df = pd.concat([df, enc_df], axis=1)
+                    df.drop([col], axis=1, inplace=True)
+            
+            for col in df.columns:
+                df[col] = df[col].astype(float)
+                
+            return df
+
+        preprocessing_pipeline = Pipeline([
+            ('cleaning', FunctionTransformer(clean, validate=False)), 
+        ], verbose=True)
+        df_transformed = preprocessing_pipeline.fit_transform(df)
+
+        # Define metrics to determine the best model.
+        # Split the dataset into features (X) and target variable (y)
+        X = df_transformed.drop(columns=['Is Fraud?'])
+        y = df_transformed['Is Fraud?']
+
+        # Calculate the desired number of fraud cases based on the desired proportion
+        desired_proportion = 0.2
+        total_samples = 40000
+        fraud_samples = int(total_samples * desired_proportion)
+
+        # Create RandomUnderSampler with the desired sampling strategy
+        rus = RandomUnderSampler(sampling_strategy={0: total_samples - fraud_samples, 1: fraud_samples}, random_state=1613)
+
+        # Apply random undersampling to the original dataset
+        X_resampled, y_resampled = rus.fit_resample(X, y)
+
+        # Split the resampled data into train and test sets
+        X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.3, random_state=1613)
+
+        # Build a predictive model capable of predicting the probability that a transaction is fraudulent.
+        rf_classifier = RandomForestClassifier(n_estimators=100, random_state=42)
+        rf_classifier.fit(X_train, y_train)
+
+        y_pred_rf = rf_classifier.predict(X_test)
+
+        st.write("**Random Forest Classifier Results:**")
+        st.text(classification_report(y_test, y_pred_rf))
+        conf_matrix = confusion_matrix(y_test, y_pred_rf)
+        conf_matrix_display = np.array([[f"TN: {conf_matrix[0, 0]}", f"FP: {conf_matrix[0, 1]}"],
+                                        [f"FN: {conf_matrix[1, 0]}", f"TP: {conf_matrix[1, 1]}"]])
+        st.table(conf_matrix_display)
+
+        # Hyperparameters Tuning
+        # Define the hyperparameters
+        param_grid = {
+            'n_estimators': [50, 100, 200],
+            'max_depth': [None, 10, 20, 30],
+            'max_features': ['sqrt', 'log2'],
+            'min_samples_split': [2, 5, 10],
+            'min_samples_leaf': [1, 2, 4],
+            'bootstrap': [True, False]
+        }
+
+        # Create a RandomForestClassifier model
+        rf = RandomForestClassifier(random_state=42)
+
+        # GridSearchCV 
+        grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, 
+                                cv=3, n_jobs=-1, verbose=0, scoring='f1_macro') 
+
+        grid_search.fit(X_train, y_train)
+
+        # Get the best hyperparameters
+        best_params = grid_search.best_params_
+        st.write("**Best hyperparameters:**", best_params)
+
+        # Use the best estimator for predictions or further work
+        best_rf = grid_search.best_estimator_
+
+        y_pred_best_rf = best_rf.predict(X_test)
+
+        st.write("**Random Forest Classifier Results with Best Hyperparameters:**")
+        st.text(classification_report(y_test, y_pred_best_rf))
+        conf_matrix = confusion_matrix(y_test, y_pred_best_rf)
+        conf_matrix_display = np.array([[f"TN: {conf_matrix[0, 0]}", f"FP: {conf_matrix[0, 1]}"],
+                                        [f"FN: {conf_matrix[1, 0]}", f"TP: {conf_matrix[1, 1]}"]])
+        st.table(conf_matrix_display)
+            
+        # Present the best model for predicting fraudulent transactions and key insights from the analysis.
+        # Extract feature importances from the best random forest model
+        feature_importance = best_rf.feature_importances_
+        features = X_train.columns
+
+        # Sort the feature importances and their corresponding feature names
+        sorted_idx = feature_importance.argsort()
+
+        # Plot horizontal bar chart
+        st.subheader('Feature Importances using Random Forest')
+
+        # Plot horizontal bar chart
+        data = pd.DataFrame({'Features': features[sorted_idx], 'Feature Importance': feature_importance[sorted_idx]})
+        data = data.sort_values(by='Feature Importance')
+
+        fig = px.bar(data, x='Feature Importance', y='Features', orientation='h', color='Features')
+        fig.update_traces(marker_line_color='black', marker_line_width=1)
+
+        fig.update_layout(
+            xaxis_title='Importance',
+            yaxis_title='Features',
+            showlegend=False
+        )
+
+        st.plotly_chart(fig)
+
+    randomF()
+
 
 page_names_to_funcs_retail = {
     "—": intro,
@@ -469,6 +782,7 @@ page_names_to_funcs_retail = {
 
 page_names_to_funcs_finance = {
     "Data Ingestion Tool": data_ingestor,
+    "ML Fraud Detection": data_science,
 }
 
 st.sidebar.header("Toggle Between Projects")
